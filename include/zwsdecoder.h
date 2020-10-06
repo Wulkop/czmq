@@ -1,7 +1,8 @@
 #ifndef __ZWSDECODER_H_INCLUDED__
 #define __ZWSDECODER_H_INCLUDED__
-extern "C"
-{
+#ifdef __cplusplus
+extern "C" {
+#endif
 #include <czmq.h>
 
 	typedef void(*message_callback_t)(void *tag, byte* payload, int length);
@@ -19,14 +20,10 @@ extern "C"
 
 	bool zwsdecoder_is_errored(zwsdecoder_t *self);
 
-#ifdef __cplusplus
-	extern "C" {
-#endif
 
 #ifdef __cplusplus
 	}
 #endif
-}
 
 
 #endif
