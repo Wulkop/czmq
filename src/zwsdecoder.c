@@ -1,6 +1,8 @@
 #include "zwsdecoder.h"
+#ifdef __cplusplus
 extern "C"
 {
+#endif
 typedef enum
 {
     opcode_continuation = 0, opcode_text = 0x01, opcode_binary = 0x02, opcode_close = 0x08, opcode_ping = 0x09, opcode_pong = 0xA
@@ -296,4 +298,7 @@ bool zwsdecoder_is_errored(zwsdecoder_t *self)
 {
     return self->state == error;
 }
-}
+#ifdef __cplusplus
+    }
+#endif
+
