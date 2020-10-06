@@ -59,6 +59,8 @@ IF (ENABLE_DRAFTS)
     ADD_DEFINITIONS (-DCZMQ_BUILD_DRAFT_API)
 ENDIF (ENABLE_DRAFTS)
 
+ADD_SUBDIRECTORY(${CMAKE_CURRENT_SOURCE_DIR}/Dependencies/zlib)
+include_directories(${CMAKE_CURRENT_BINARY_DIR}/Dependencies/zlib)
 ########################################################################
 # platform.h
 ########################################################################
@@ -123,22 +125,23 @@ list(APPEND CMAKE_MODULE_PATH "${SOURCE_DIR}")
 set(OPTIONAL_LIBRARIES)
 set(OPTIONAL_LIBRARIES_STATIC)
 
+message(${LIBZMQ_LIBRARIES})
 ########################################################################
 # LIBZMQ dependency
 ########################################################################
-find_package(libzmq REQUIRED)
-IF (LIBZMQ_FOUND)
+#find_package(libzmq REQUIRED)
+#IF (LIBZMQ_FOUND)
     include_directories(${LIBZMQ_INCLUDE_DIRS})
-    list(APPEND MORE_LIBRARIES ${LIBZMQ_LIBRARIES})
-  IF (PC_LIBZMQ_FOUND)
-      set(pkg_config_names_private "${pkg_config_names_private} libzmq")
-      list(APPEND OPTIONAL_LIBRARIES_STATIC ${PC_LIBZMQ_STATIC_LDFLAGS})
-  ELSE (PC_LIBZMQ_FOUND)
-      set(pkg_config_libs_private "${pkg_config_libs_private} -lzmq")
-  ENDIF (PC_LIBZMQ_FOUND)
-ELSE (LIBZMQ_FOUND)
-    message( FATAL_ERROR "libzmq not found." )
-ENDIF (LIBZMQ_FOUND)
+    list(APPEND MORE_LIBRARIES ${LIBZMQ_LIBRARIES} zlibstatic)
+#  IF (PC_LIBZMQ_FOUND)
+#      set(pkg_config_names_private "${pkg_config_names_private} libzmq")
+#      list(APPEND OPTIONAL_LIBRARIES_STATIC ${PC_LIBZMQ_STATIC_LDFLAGS})
+#  ELSE (PC_LIBZMQ_FOUND)
+#      set(pkg_config_libs_private "${pkg_config_libs_private} -lzmq")
+#  ENDIF (PC_LIBZMQ_FOUND)
+#ELSE (LIBZMQ_FOUND)
+#    message( FATAL_ERROR "libzmq not found." )
+#ENDIF (LIBZMQ_FOUND)
 
 ########################################################################
 # UUID dependency
@@ -329,7 +332,7 @@ install(FILES ${czmq_headers} DESTINATION include)
 ########################################################################
 
 
-include_directories("${SOURCE_DIR}/src" "${SOURCE_DIR}/include" "${PROJECT_BINARY_DIR}")
+include_directories("${SOURCE_DIR}/src" "${SOURCE_DIR}/include" "${PROJECT_BINARY_DIR}" "${CMAKE_CURRENT_SOURCE_DIR}/Dependencies/zlib/")
 set (czmq_sources
     src/zactor.c
     src/zarmour.c
@@ -362,6 +365,9 @@ set (czmq_sources
     src/zproxy.c
     src/zrex.c
     src/zgossip_msg.c
+	src/zwsdecoder.c
+	src/zwshandshake.c
+	src/zwssock.c
 )
 
 IF (ENABLE_DRAFTS)
@@ -445,7 +451,7 @@ endif()
 # static
 if (CZMQ_BUILD_STATIC)
   IF (APPLE)
-    add_library(czmq-static STATIC ${czmq_sources})
+    add_library(czmq-static STATIC ${czmq_sources} )
   ELSE (APPLE)
     IF (MSVC)
       add_library(czmq-static STATIC ${czmq_sources})
@@ -472,6 +478,12 @@ if (CZMQ_BUILD_STATIC)
     RUNTIME DESTINATION bin                # .dll file
   )
 
+  install(TARGETS zlibstatic
+    EXPORT czmq-targets
+    LIBRARY DESTINATION "lib${LIB_SUFFIX}" # .so file
+    ARCHIVE DESTINATION "lib${LIB_SUFFIX}" # .lib file
+    RUNTIME DESTINATION bin                # .dll file
+  )
   target_include_directories(czmq-static
     PUBLIC
       $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
